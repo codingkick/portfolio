@@ -2,9 +2,10 @@ import { useRef } from 'react';
 import Hall from './Hall';
 import Props from './Props';
 import Atmosphere from './Atmosphere';
+import Canal from './Canal';
 import CameraRig from './CameraRig';
 
-export default function Scene() {
+export default function Scene({ quality = 'high' }) {
   const fill = useRef();
 
   return (
@@ -25,6 +26,7 @@ export default function Scene() {
       <CameraRig fillLight={fill} />
       <Hall />
       <Props />
+      <Canal quality={quality} />
       <Atmosphere />
     </>
   );

@@ -11,10 +11,10 @@ export const profile = {
   phone: '+91 88735 84854',
   // NOTE: resume lists these platforms without URLs - replace the handles below with your real ones.
   links: {
-    linkedin: 'https://www.linkedin.com/in/YOUR-HANDLE',
-    github: 'https://github.com/YOUR-HANDLE',
-    leetcode: 'https://leetcode.com/u/YOUR-HANDLE',
-    codeforces: 'https://codeforces.com/profile/YOUR-HANDLE',
+    linkedin: 'https://www.linkedin.com/in/rahulranjan5/',
+    github: 'https://github.com/codingkick',
+    leetcode: 'https://leetcode.com/u/codingkick/',
+    codeforces: 'https://codeforces.com/profile/perseverance_2021',
   },
 };
 
@@ -120,7 +120,7 @@ export const skills = [
     items: [
       ['C++', 5],
       ['Java', 5],
-      ['Python', 4],
+      ['Python', 5],
       ['SQL', 5],
     ],
   },
@@ -130,8 +130,8 @@ export const skills = [
       ['Spring Boot', 5],
       ['Microservices', 4],
       ['REST APIs', 5],
-      ['Kafka', 4],
-      ['Distributed Systems', 4],
+      ['Kafka', 5],
+      ['Distributed Systems', 5],
       ['Node.js', 3],
     ],
   },
@@ -139,27 +139,25 @@ export const skills = [
     group: 'Data & Storage',
     items: [
       ['MySQL', 5],
-      ['Oracle DB', 4],
+      ['Oracle DB', 5],
       ['MongoDB', 4],
-      ['Firebase', 3],
+      ['Firebase', 4],
     ],
   },
   {
     group: 'Ops & Cloud',
     items: [
-      ['OCI', 4],
+      ['OCI', 5],
       ['Grafana', 5],
-      ['Observability', 4],
-      ['Splunk', 3],
+      ['Splunk', 4],
     ],
   },
   {
     group: 'AI / Applied',
     items: [
-      ['LangChain', 3],
-      ['RAG', 3],
-      ['LLM integration', 3],
-      ['React.js', 3],
+      ['LangChain', 5],
+      ['RAG', 4],
+      ['Langgraph', 4],
     ],
   },
 ];

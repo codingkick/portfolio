@@ -113,13 +113,9 @@ export default function Props() {
       <Urn position={[-3.1, 0, 5.5]} scale={1.05} />
       <Urn position={[3.1, 0, 5.5]} scale={1.05} />
 
+      {/* The canal now runs through the atrium, so this station keeps only its
+          flanking urn - the old square basin would have collided with the rill. */}
       <group position={[0, 0, -24]}>
-        <mesh position={[0, 0.18, 0]} material={M.marbleDim}>
-          <boxGeometry args={[3.4, 0.36, 3.4]} />
-        </mesh>
-        <mesh position={[0, 0.3, 0]} material={M.water}>
-          <boxGeometry args={[2.7, 0.2, 2.7]} />
-        </mesh>
         <Urn position={[-4.6, 0, -3]} scale={0.8} />
       </group>
 

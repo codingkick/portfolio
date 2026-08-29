@@ -60,7 +60,7 @@ function Meter({ level }) {
 function Hero() {
   return (
     <Tablet>
-      <p className={kicker}>{profile.role} &nbsp;·&nbsp; Oracle &nbsp;·&nbsp; OCI MARS</p>
+      <p className={kicker}>{profile.role} &nbsp;·&nbsp; Oracle &nbsp;</p>
       <Carved
         text={profile.name}
         as="h1"
