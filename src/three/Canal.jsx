@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { M } from './materials';
+import { useAim, pointer } from './aimStore';
 
 /*
  * A Roman nymphaeum-style water channel (a rill) running the FULL length of the
@@ -179,9 +180,23 @@ const CAUSTIC_VERT = /* glsl */ `
 
 const _p = new THREE.Vector3();
 const _t = new THREE.Vector3();
+const _hit = new THREE.Vector3();
+const _ndc = new THREE.Vector2();
+const WATER_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.15); // y = WATER_Y
+
+// How far off the channel centreline the pointer can be aimed and still snap the
+// crosshair on, plus how long a fish's leap lasts.
+const AIM_X = 2.4;
+const AIM_Z_PAD = 8;
+const JUMP_DUR = 1.15;
 
 export default function Canal({ quality = 'high' }) {
   const low = quality === 'low';
+  const { camera } = useThree();
+  const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  const lockedIdx = useRef(-1);
+  const setAim = useAim((s) => s.setAim);
+  const registerHit = useAim((s) => s.registerHit);
 
   const waterMat = useMemo(
     () =>
@@ -269,6 +284,7 @@ export default function Canal({ quality = 'high' }) {
         scale: 1.6 + Math.random() * 1.0,
         color: PALETTE[i % PALETTE.length],
         lateral: (Math.random() - 0.5) * 0.36,
+        jump: null, // { c, height } while the fish is mid-leap
       });
     }
     return arr;
@@ -288,17 +304,109 @@ export default function Canal({ quality = 'high' }) {
   const bodyRefs = useRef([]);
   const tailRefs = useRef([]);
 
+  // Track the mouse pointer (for the raycast aim) and fire on a click - a click,
+  // not a look-drag - that lands on a fish: send it leaping clear of the water.
+  useEffect(() => {
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    let downX = 0;
+    let downY = 0;
+    const onMove = (e) => {
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      pointer.inside = true;
+    };
+    const onLeave = () => {
+      pointer.inside = false;
+    };
+    const onDown = (e) => {
+      downX = e.clientX;
+      downY = e.clientY;
+    };
+    const onUp = (e) => {
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+      const idx = lockedIdx.current;
+      if (!useAim.getState().visible || idx < 0) return;
+      const f = fish[idx];
+      if (f && !f.jump) f.jump = { c: 0, height: 1.0 + Math.random() * 0.6 };
+      registerHit();
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerout', onLeave);
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerout', onLeave);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [fish, registerHit]);
+
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
     waterMat.uniforms.uTime.value = t;
     causticMats.bed.uniforms.uTime.value = t;
     causticMats.floor.uniforms.uTime.value = t;
 
+    // --- auto-aim: cast a ray from the camera through the mouse pointer; the
+    // crosshair lights up when that ray meets the flowing channel. ---
+    let lookingAtWater = false;
+    let locked = false;
+    lockedIdx.current = -1;
+
+    if (pointer.inside) {
+      raycaster.setFromCamera(_ndc.set(pointer.x, pointer.y), camera);
+      if (raycaster.ray.intersectPlane(WATER_PLANE, _hit)) {
+        lookingAtWater =
+          Math.abs(_hit.x) < AIM_X &&
+          _hit.z < Z0 + AIM_Z_PAD &&
+          _hit.z > Z1 - AIM_Z_PAD;
+      }
+    }
+
+    if (lookingAtWater) {
+      const hits = raycaster.intersectObjects(bodyRefs.current.filter(Boolean), true);
+      if (hits.length) {
+        let o = hits[0].object;
+        while (o && o.userData.fishIndex === undefined) o = o.parent;
+        if (o) {
+          locked = true;
+          lockedIdx.current = o.userData.fishIndex;
+        }
+      }
+    }
+    setAim(lookingAtWater, locked);
+
     const d = Math.min(dt, 0.05);
     for (let i = 0; i < fish.length; i++) {
       const f = fish[i];
       const g = bodyRefs.current[i];
       if (!g) continue;
+
+      // mid-leap: arc up out of the water, nose tipping over, then drop back in
+      if (f.jump) {
+        f.jump.c += d;
+        const p = f.jump.c / JUMP_DUR;
+        if (p >= 1) {
+          f.jump = null;
+        } else {
+          f.u = (f.u + f.dir * f.speed * d * 0.6 + 1) % 1;
+          f.curve.getPoint(f.u, _p);
+          f.curve.getTangent(f.u, _t);
+          const arc = Math.sin(Math.PI * p);
+          g.position.set(
+            _p.x + f.lateral,
+            _p.y + (WATER_Y - _p.y + f.jump.height) * arc,
+            _p.z,
+          );
+          const yaw = Math.atan2(_t.x * f.dir, _t.z * f.dir);
+          g.rotation.set(Math.cos(Math.PI * p) * 1.1, yaw, Math.sin(t * f.wagFreq + f.phase) * 0.4);
+          const tail = tailRefs.current[i];
+          if (tail) tail.rotation.y = Math.sin(t * f.wagFreq * 2 + f.phase) * f.wagAmp * 1.6;
+          continue;
+        }
+      }
+
       const surge = 1 + 0.3 * Math.sin(t * 0.5 + f.phase);
       f.u = (f.u + f.dir * f.speed * d * surge + 1) % 1;
 
@@ -382,7 +490,13 @@ export default function Canal({ quality = 'high' }) {
 
       {/* fish */}
       {fish.map((f, i) => (
-        <group key={i} ref={(el) => (bodyRefs.current[i] = el)} scale={f.scale} renderOrder={2}>
+        <group
+          key={i}
+          ref={(el) => (bodyRefs.current[i] = el)}
+          userData={{ fishIndex: i }}
+          scale={f.scale}
+          renderOrder={2}
+        >
           <mesh material={getFishMat(f.color)} scale={[0.55, 0.62, 1.34]}>
             <sphereGeometry args={[0.16, 10, 8]} />
           </mesh>

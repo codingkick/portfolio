@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import Overlay from './ui/Overlay';
 import ProgressDial from './ui/ProgressDial';
 import Hint from './ui/Hint';
+import Reticle from './ui/Reticle';
 import Fallback from './ui/Fallback';
 import { useJourneyInput } from './journey/useJourneyInput';
 
@@ -70,6 +71,7 @@ export default function App() {
       <Overlay />
       <ProgressDial />
       <Hint />
+      <Reticle />
       {/* cinematic vignette framing the shot */}
       <div
         className="pointer-events-none fixed inset-0 z-10"

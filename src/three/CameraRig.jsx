@@ -15,14 +15,13 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 const LOOK_SENSITIVITY = 0.0026; // radians per pixel dragged
 const PITCH_LIMIT = 1.15; // ~66deg up/down
-const RECENTER_BASE = 0.6; // higher = slower drift back to the authored heading
 
 /**
  * Drives the camera: every frame it eases `progressRef` toward `target`, samples
  * an authored anchor + aim for that spot in the hall, and faces the camera down
  * it. On top of that it adds a free 360deg look: drag anywhere in the scene to
- * pan the view (full yaw, clamped pitch). When you let go the view drifts slowly
- * back to the authored framing so the "tracking shot" reasserts itself.
+ * pan the view (full yaw, clamped pitch). The look offset is sticky - it stays
+ * where you leave it and rides on top of the authored framing as you travel.
  */
 export default function CameraRig({ fillLight }) {
   const lastActive = useRef(-1);
@@ -101,14 +100,7 @@ export default function CameraRig({ fillLight }) {
     );
     state.camera.position.copy(_pos);
 
-    // drift the free-look offset back toward neutral when not dragging
-    if (!dragging.current) {
-      const r = 1 - Math.pow(RECENTER_BASE, d);
-      yaw.current += (0 - yaw.current) * r;
-      pitch.current += (0 - pitch.current) * r;
-    }
-
-    // authored heading, then the user's free-look offset on top
+    // authored heading, then the user's sticky free-look offset on top
     _look.set(look[0], look[1] + Math.sin(t * 0.26) * 0.04, look[2]);
     _m.lookAt(state.camera.position, _look, UP);
     _base.setFromRotationMatrix(_m);
