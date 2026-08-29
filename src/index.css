@@ -35,11 +35,19 @@ body[data-journey='3d'] {
   overscroll-behavior: none;
 }
 
-/* Canvas sits behind everything */
+/* Canvas sits behind everything. touch-action:none here (not on <body>, which
+   would also freeze the scrollable chamber tablet) so every swipe over the hall
+   drives the camera instead of scrolling / zooming / pulling to refresh. */
 .hall-canvas {
   position: fixed;
   inset: 0;
   z-index: 0;
+  touch-action: none;
+}
+
+/* a chamber tablet that overflows still scrolls under a finger */
+.tablet-scroll {
+  touch-action: pan-y;
 }
 
 /* Carved inscription - subtle bevel via layered text shadow */

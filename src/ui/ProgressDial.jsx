@@ -2,8 +2,10 @@ import { useJourney } from '../journey/store';
 import { chambers } from '../journey/chambers';
 
 /**
- * Torch-lit dial: one marker per chamber down the right edge. The active one is
- * lit gold; click any marker to dolly straight to that chamber.
+ * Torch-lit dial: one marker per chamber. On desktop it runs down the right edge;
+ * on a phone the panel is full-width, so it becomes a compact horizontal row
+ * pinned to the bottom. The active marker is lit gold; tap any marker to dolly
+ * straight to that chamber.
  */
 export default function ProgressDial() {
   const active = useJourney((s) => s.active);
@@ -12,9 +14,9 @@ export default function ProgressDial() {
   return (
     <nav
       aria-label="Hall chambers"
-      className="fixed right-4 top-1/2 z-30 -translate-y-1/2 sm:right-7"
+      className="fixed left-1/2 bottom-3 z-30 -translate-x-1/2 sm:left-auto sm:right-7 sm:top-1/2 sm:bottom-auto sm:translate-x-0 sm:-translate-y-1/2"
     >
-      <ul className="flex flex-col items-end gap-4">
+      <ul className="flex flex-row items-center gap-5 rounded-full border border-ink/15 bg-white/70 px-4 py-2 backdrop-blur-md sm:flex-col sm:items-end sm:gap-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
         {chambers.map((c, i) => {
           const on = i === active;
           return (
@@ -23,10 +25,11 @@ export default function ProgressDial() {
                 type="button"
                 onClick={() => goto(i)}
                 aria-current={on ? 'true' : undefined}
+                aria-label={c.label}
                 className="group flex items-center gap-3"
               >
                 <span
-                  className={`font-inscription text-[10px] uppercase tracking-[0.16em] transition-all duration-300 ${
+                  className={`hidden font-inscription text-[10px] uppercase tracking-[0.16em] transition-all duration-300 sm:inline ${
                     on
                       ? 'text-flame opacity-100'
                       : 'text-ink/45 opacity-0 group-hover:opacity-100'
@@ -43,7 +46,7 @@ export default function ProgressDial() {
                     }`}
                   />
                 </span>
-                <span className="font-inscription text-[9px] tracking-[0.1em] text-ink/35">
+                <span className="hidden font-inscription text-[9px] tracking-[0.1em] text-ink/35 sm:inline">
                   {c.marker}
                 </span>
               </button>

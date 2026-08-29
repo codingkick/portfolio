@@ -23,8 +23,10 @@ export function Tablet({ children, wide = false }) {
       className={`marble-field tablet-scroll relative border border-flame/25 ${
         wide ? 'max-w-3xl' : 'max-w-chamber'
       } ${
-        scroll ? 'max-h-[82vh] overflow-y-auto overscroll-contain' : 'overflow-hidden'
-      } w-full px-7 py-8 sm:px-10 sm:py-11 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_-2px_10px_rgba(70,80,90,0.12)_inset,0_36px_90px_-34px_rgba(30,40,50,0.55)]`}
+        scroll
+          ? 'max-h-[74vh] sm:max-h-[82vh] overflow-y-auto overscroll-contain'
+          : 'overflow-hidden'
+      } w-full px-6 py-7 sm:px-10 sm:py-11 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_-2px_10px_rgba(70,80,90,0.12)_inset,0_36px_90px_-34px_rgba(30,40,50,0.55)]`}
     >
       <div className="meander mb-6" />
       <div className="relative">{children}</div>
