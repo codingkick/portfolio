@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: #d7dde1;
+  color: #23272c;
+  font-family: '"EB Garamond"', 'Cormorant Garamond', Georgia, serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(255, 122, 40, 0.32);
+  color: #23272c;
+}
+
+/* ---- The 3D journey locks the page; no document scroll ---- */
+body[data-journey='3d'] {
+  overflow: hidden;
+  height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* Canvas sits behind everything */
+.hall-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Carved inscription - subtle bevel via layered text shadow */
+.carved {
+  color: #f1f3f4;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14),
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.carved-dark {
+  color: #23272c;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6),
+    0 -1px 1px rgba(0, 0, 0, 0.14);
+}
+
+/* Greek-key (meander) border, drawn with a repeating conic/linear mask-free SVG */
+.meander {
+  height: 14px;
+  width: 100%;
+  background-repeat: repeat-x;
+  background-size: auto 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14'%3E%3Cpath d='M1 13V4h8V1h13v3h-3v6h3v3M12 10V7h4' fill='none' stroke='%23ff7a28' stroke-width='1.4'/%3E%3C/svg%3E");
+  opacity: 0.85;
+}
+
+/* Fluted marble surface used on fallback panels */
+.fluted {
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 14px);
+  background-size: 14px 100%;
+}
+
+/* Marble surface, built from cheap layered gradients only. No SVG filters or
+   blend modes: those re-rasterise every frame behind an animating element and
+   were tanking the WebGL frame budget. */
+.marble-field {
+  background-color: #eef1f2;
+  background-image:
+    radial-gradient(120% 80% at 18% 0%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 55%),
+    radial-gradient(90% 70% at 88% 12%, rgba(255, 122, 40, 0.06) 0%, rgba(255, 122, 40, 0) 45%),
+    linear-gradient(115deg, rgba(120, 132, 142, 0.14) 0%, rgba(120, 132, 142, 0) 24%, rgba(120, 132, 142, 0.10) 48%, rgba(120, 132, 142, 0) 72%),
+    linear-gradient(200deg, rgba(120, 130, 140, 0.12) 0%, rgba(120, 130, 140, 0) 32%),
+    linear-gradient(160deg, #f3f5f5, #dfe3e4);
+}
+
+.hairline-gold {
+  border-color: rgba(154, 119, 54, 0.4);
+}
+
+.tablet-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.tablet-scroll::-webkit-scrollbar-thumb {
+  background: rgba(154, 119, 54, 0.5);
+}
+.tablet-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(154, 119, 54, 0.5) transparent;
+}
+
+/* Loader runs entirely on CSS so it keeps animating (and dismisses itself) even
+   while the main thread is busy compiling the WebGL scene on first paint. */
+@keyframes hall-curtain {
+  0% {
+    transform: translateY(0);
+    visibility: visible;
+  }
+  99% {
+    visibility: visible;
+  }
+  100% {
+    transform: translateY(-102%);
+    visibility: hidden;
+  }
+}
+@keyframes hall-drum {
+  0%,
+  8% {
+    transform: translateY(-190px);
+    opacity: 0;
+  }
+  22%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes hall-cap {
+  0%,
+  58% {
+    transform: translateY(-26px);
+    opacity: 0;
+  }
+  74%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes hall-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.hall-loader.lift {
+  animation: hall-curtain 0.9s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+.hall-loader .drum {
+  animation: hall-drum 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hall-loader .drum:nth-child(2) {
+  animation-delay: 0.28s;
+}
+.hall-loader .drum:nth-child(3) {
+  animation-delay: 0.56s;
+}
+.hall-loader .cap {
+  animation: hall-cap 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hall-loader .pulse {
+  animation: hall-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
