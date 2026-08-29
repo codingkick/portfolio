@@ -72,6 +72,62 @@ export default function CameraRig({ fillLight }) {
     };
   }, []);
 
+  // Touch look-around. Vertical swipes already drive travel (useJourneyInput), so
+  // on touch a *sideways* swipe pans the view; once a gesture commits to
+  // horizontal it keeps panning (with a little vertical tilt) until the finger lifts.
+  useEffect(() => {
+    if (window.matchMedia('(pointer: fine)').matches) return;
+
+    let sx = 0;
+    let sy = 0;
+    let tracking = false;
+    let horizontal = false;
+
+    const onStart = (e) => {
+      // Skip only genuinely interactive targets. A horizontal swipe that starts
+      // on the (pan-y) chamber tablet still counts as a look - it can't scroll it.
+      if (e.target.closest?.('a, button, input, textarea, nav')) return;
+      const t = e.touches[0];
+      sx = t.clientX;
+      sy = t.clientY;
+      tracking = true;
+      horizontal = false;
+    };
+    const onMove = (e) => {
+      if (!tracking) return;
+      const t = e.touches[0];
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      if (!horizontal && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+        horizontal = true;
+      }
+      if (horizontal) {
+        dragging.current = true; // hold the free-look steady, don't recenter mid-swipe
+        yaw.current -= dx * LOOK_SENSITIVITY * 0.7;
+        pitch.current -= dy * LOOK_SENSITIVITY * 0.4;
+        pitch.current = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch.current));
+      }
+      sx = t.clientX;
+      sy = t.clientY;
+    };
+    const onEnd = () => {
+      tracking = false;
+      horizontal = false;
+      dragging.current = false;
+    };
+
+    window.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('touchcancel', onEnd);
+    return () => {
+      window.removeEventListener('touchstart', onStart);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
+    };
+  }, []);
+
   useFrame((state, dt) => {
     // Once a few real frames have rendered, the lazily-compiled shaders are done;
     // signal the loader to lift so the hall is lit, not black, when it does.

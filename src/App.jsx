@@ -10,9 +10,10 @@ import { useJourneyInput } from './journey/useJourneyInput';
 const Hall3D = lazy(() => import('./three/Hall3D'));
 
 /**
- * Decide which experience to serve. The full 3D walk needs a pointer, a roomy
- * viewport, WebGL, and no reduced-motion preference; everything else gets the
- * crossfade fallback (which is a first-class version, not a downgrade).
+ * Decide which experience to serve. The full 3D walk (marble hall, flowing canal,
+ * fish, caustics) now runs on phones too - swipe to travel, drag sideways to look.
+ * The crossfade fallback is reserved for the cases where the 3D route genuinely
+ * cannot run well: a reduced-motion preference, no WebGL, or a software renderer.
  * `?mode=3d` / `?mode=flat` force a route for testing.
  */
 function decideMode() {
@@ -23,10 +24,6 @@ function decideMode() {
 
   const mq = (q) => window.matchMedia(q).matches;
   const reduce = mq('(prefers-reduced-motion: reduce)');
-  const coarse = mq('(pointer: coarse)');
-  const small = window.innerWidth < 820 || window.innerHeight < 560;
-  const lowMem = (navigator.deviceMemory || 8) <= 4;
-  const lowCore = (navigator.hardwareConcurrency || 8) <= 4;
 
   let webgl = false;
   let software = false;
@@ -45,7 +42,7 @@ function decideMode() {
     webgl = false;
   }
 
-  if (reduce || coarse || small || lowMem || lowCore || !webgl || software) return 'flat';
+  if (reduce || !webgl || software) return 'flat';
   return '3d';
 }
 

@@ -43,7 +43,7 @@ const FLOW = 0.18; // <- master current speed
 const CAUSTIC_BED = 0.65;
 const CAUSTIC_FLOOR = 0.2;
 const HIGH_FISH = 34;
-const LOW_FISH = 12;
+const LOW_FISH = 18;
 const FISH_GLOW = 0.7;
 
 // Sun matches Scene's key directionalLight at [16, 24, 9].
@@ -208,9 +208,9 @@ export default function Canal({ quality = 'high' }) {
         uniforms: {
           uTime: { value: 0 },
           uFlow: { value: FLOW },
-          uSparkle: { value: low ? 0.55 : 1.0 },
+          uSparkle: { value: low ? 0.82 : 1.0 },
           uBump: { value: 7.0 },
-          uDisp: { value: low ? 0.0 : 0.045 },
+          uDisp: { value: low ? 0.032 : 0.045 },
           uSunDir: { value: SUN_DIR },
           uSunColor: { value: new THREE.Color('#fff3e0') },
           uShallow: { value: new THREE.Color('#7fd4cf') },
@@ -466,26 +466,25 @@ export default function Canal({ quality = 'high' }) {
         </mesh>
       ))}
 
-      {/* caustics - ripple light on the bed, and a fainter spill on the marble */}
+      {/* caustics - ripple light on the bed always; the fainter spill onto the
+          surrounding marble is dropped on the lighter (mobile) tier */}
+      <mesh
+        rotation-x={-Math.PI / 2}
+        position={[0, BED_Y + 0.015, MIDZ]}
+        material={causticMats.bed}
+        renderOrder={1}
+      >
+        <planeGeometry args={[HALF_W * 2, LEN]} />
+      </mesh>
       {!low && (
-        <>
-          <mesh
-            rotation-x={-Math.PI / 2}
-            position={[0, BED_Y + 0.015, MIDZ]}
-            material={causticMats.bed}
-            renderOrder={1}
-          >
-            <planeGeometry args={[HALF_W * 2, LEN]} />
-          </mesh>
-          <mesh
-            rotation-x={-Math.PI / 2}
-            position={[0, 0.03, MIDZ]}
-            material={causticMats.floor}
-            renderOrder={1}
-          >
-            <planeGeometry args={[3.6, LEN]} />
-          </mesh>
-        </>
+        <mesh
+          rotation-x={-Math.PI / 2}
+          position={[0, 0.03, MIDZ]}
+          material={causticMats.floor}
+          renderOrder={1}
+        >
+          <planeGeometry args={[3.6, LEN]} />
+        </mesh>
       )}
 
       {/* fish */}
@@ -524,7 +523,7 @@ export default function Canal({ quality = 'high' }) {
         material={waterMat}
         renderOrder={3}
       >
-        <planeGeometry args={[HALF_W * 2, LEN, 2, low ? 1 : 200]} />
+        <planeGeometry args={[HALF_W * 2, LEN, 2, low ? 48 : 200]} />
       </mesh>
     </group>
   );
